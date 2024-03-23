@@ -1,0 +1,28 @@
+upstream blog {
+  server blog:80;
+}
+
+server {
+  listen 443 ssl http2;
+
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_certificate     /etc/ssl/42.fr/wildcard.42.fr.crt;
+  ssl_certificate_key /etc/ssl/42.fr/wildcard.42.fr.key;
+
+  server_name blog.aeddaoud.42.fr;
+
+  location = /favicon.ico {
+    log_not_found off;
+    access_log off;
+  }
+
+  location = /robots.txt {
+    allow all;
+    log_not_found off;
+    access_log off;
+  }
+
+  location / {
+    proxy_pass http://blog;
+  }
+}

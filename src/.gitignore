@@ -1,0 +1,13 @@
+attachments/
+data/
+.env
+.env.nginx
+.env.wordpress
+.env.mariadb
+.env.uptime-kuma
+.env.redis
+.env.ftp-server
+*.pem
+*.key
+*.crt
+certs/

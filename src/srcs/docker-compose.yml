@@ -1,0 +1,156 @@
+
+version: '3'
+
+services:
+  wordpress:
+    init: true
+    hostname: wordpress
+    build:
+      context: requirements/wordpress/
+    image: wordpress
+    container_name: incp_wordpress
+    volumes:
+      - incp_wordpress:/var/www/
+    env_file:
+      - .env.wordpress
+    networks:
+      - incp_net
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+      - redis
+
+  nginx:
+    init: true
+    hostname: nginx
+    build:
+      context: requirements/nginx/
+    image: nginx
+    container_name: incp_nginx
+    volumes:
+      - incp_wordpress:/var/www/
+    networks:
+      incp_net:
+        aliases:
+          - aeddaoud.42.fr
+          - blog.aeddaoud.42.fr
+          - adminer.aeddaoud.42.fr
+          - uptime-kuma.aeddaoud.42.fr
+    ports:
+      - 443:443/tcp
+    restart: unless-stopped
+    depends_on:
+      - wordpress
+
+  mariadb:
+    init: true
+    hostname: mariadb
+    build:
+      context: requirements/mariadb/
+    image: mariadb
+    container_name: incp_mariadb
+    volumes:
+      - incp_mariadb:/var/lib/mysql
+    env_file:
+      - .env.mariadb
+    networks:
+      - incp_net
+    restart: unless-stopped
+
+  blog:
+    init: true
+    hostname: blog
+    build:
+      context: requirements/bonus/blog/
+    image: blog
+    container_name: incp_blog
+    networks:
+      - incp_net
+    restart: unless-stopped
+
+  uptime-kuma:
+    init: true
+    hostname: uptime-kuma
+    build:
+      context: requirements/bonus/uptime-kuma/
+    image: uptime-kuma
+    container_name: incp_uptime-kuma
+    volumes:
+      - incp_uptime-kuma:/app/data
+    env_file:
+      - .env.uptime-kuma
+    networks:
+      - incp_net
+    restart: unless-stopped
+
+  adminer:
+    init: true
+    hostname: adminer
+    build:
+      context: requirements/bonus/adminer/
+    image: adminer
+    container_name: incp_adminer
+    networks:
+      - incp_net
+    restart: unless-stopped
+
+  ftp-server:
+    init: true
+    hostname: ftp-server
+    build:
+      context: requirements/bonus/ftp-server/
+    image: ftp-server
+    container_name: incp_ftp-server
+    env_file:
+      - .env.ftp-server
+    volumes:
+      - incp_wordpress:/home/wordpress/
+    ports:
+      - 20-21:20-21
+      - 10000-10100:10000-10100
+    networks:
+      - incp_net
+    restart: unless-stopped
+
+  redis:
+    init: true
+    hostname: redis
+    build:
+      context: requirements/bonus/redis/
+    image: redis
+    container_name: incp_redis
+    env_file:
+      - .env.redis
+    networks:
+      - incp_net
+    restart: unless-stopped
+
+networks:
+  incp_net:
+    name: incp_net
+    driver: bridge
+
+volumes:
+  incp_mariadb:
+    name: mariadb
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '~/data/mariadb/'
+
+  incp_wordpress:
+    name: wordpress
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '~/data/wordpress/'
+
+  incp_uptime-kuma:
+    name: uptime-kuma
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '~/data/uptime-kuma/'
